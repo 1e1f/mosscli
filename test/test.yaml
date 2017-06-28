@@ -1,0 +1,21 @@
+$each:
+  production-yaml:
+    $stack:
+      path: 'production.yaml'
+    $select:
+      production: true
+  debug-yaml:
+    $stack:
+      path: 'debug.yaml'
+    $select:
+      debug: true
+  debug-json:
+    $stack:
+      path: 'production.json'
+      format: json
+    $select:
+      debug: true
+$write:
+  libraryTarget:
+    -production: es5
+    -debug: es6
