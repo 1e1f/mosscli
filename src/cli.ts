@@ -5,7 +5,7 @@ import * as minimist from 'minimist';
 import { join } from 'path';
 import { check, contains, each, extend, clone, combine } from 'typed-json-transform';
 import { readFileSync, writeFileSync } from 'fs';
-import { load, moss, addFunctions } from 'js-moss';
+import { load, moss, addFunctions, getFunctions } from 'js-moss';
 
 const name = 'tmake';
 
@@ -29,9 +29,11 @@ const optionArgs = <any>{};
 
 addFunctions({
   $write: (context: Moss.Layer, args: any) => {
+    console.log('context', context, 'args', args);
     const { data, state } = moss(args, context.state);
-    const { path, format } = combine(data, context.state.stack);
-    switch (format || args.outFormat) {
+    const options = combine(data, state.stack);
+    const { path, format } = options;
+    switch (format || state.heap.outFormat) {
       case 'json':
         writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
         break;
@@ -58,13 +60,13 @@ export function run(args: any) {
   });
 
   const environment = {
-    $options: {
+    $select: {
       mac: platform == 'darwin',
       linux: platform == 'linux',
       win: platform == 'win32',
       ...optionArgs
     },
-    $environment: {
+    $heap: {
       ...environmentArgs
     }
   };
@@ -82,5 +84,6 @@ export function run(args: any) {
   } catch (e) {
     console.error('problem parsing config file', e.message);
   }
+  
   console.info(load(config, environment));
 }
