@@ -1207,9 +1207,9 @@ istanbul-reports@^1.0.0:
   dependencies:
     handlebars "^4.0.3"
 
-js-moss@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.1.4.tgz#4d244d276e68959d4097a3ed808e9ff4cca5a1a1"
+js-moss@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.4.1.tgz#243394e2b5e4f5961f180649752e0187407f26a4"
   dependencies:
     js-yaml "^3.6.1"
     typed-json-transform "^0.16.9"
@@ -2264,10 +2264,6 @@ type-detect@^1.0.0:
 typed-json-transform@^0.16.9:
   version "0.16.9"
   resolved "https://registry.yarnpkg.com/typed-json-transform/-/typed-json-transform-0.16.9.tgz#aaf7fc5b0f6959787daf311ede663898c76bf9eb"
-
-typed-json-transform@^0.17.0:
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/typed-json-transform/-/typed-json-transform-0.17.0.tgz#daaa3044e2fdb722a9eed3b11497083d2e5c946b"
 
 typescript@^2.1.6:
   version "2.4.0"
