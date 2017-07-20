@@ -1207,9 +1207,9 @@ istanbul-reports@^1.0.0:
   dependencies:
     handlebars "^4.0.3"
 
-js-moss@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.1.4.tgz#4d244d276e68959d4097a3ed808e9ff4cca5a1a1"
+js-moss@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.4.0.tgz#ec3e1d4d13031a18ac58127c628368f82426de51"
   dependencies:
     js-yaml "^3.6.1"
     typed-json-transform "^0.16.9"

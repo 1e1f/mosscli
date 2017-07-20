@@ -14,10 +14,12 @@
   "bugs": {
     "url": "https://github.com/1e1f/js-moss/issues"
   },
-  "licenses": [{
-    "type": "MIT",
-    "url": "https://github.com/1e1f/js-moss/blob/master/LICENSE-MIT"
-  }],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/1e1f/js-moss/blob/master/LICENSE-MIT"
+    }
+  ],
   "bin": "bin/mosscli.js",
   "preferGlobal": true,
   "types": "interfaces/index.d.ts",
