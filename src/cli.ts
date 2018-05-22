@@ -67,12 +67,17 @@ addFunctions({
   }
 });
 
+const mossState = process.env.MOSS_STATE ? JSON.parse(process.env.MOSS_STATE) : {
+  '$<': {},
+  'select<': {}
+};
+
 export function cli() {
   const args = minimist(process.argv.slice(2));
   const commands = args._;
   if (commands.length == 1) {
     switch (commands[0]) {
-      case 'state': return console.log(chromafi(yaml.dump(JSON.parse(process.env.MOSS_STATE)), chromafiOptions));
+      case 'state': return console.log(chromafi(yaml.dump(mossState), chromafiOptions));
       default: run(args);
     }
 
@@ -91,22 +96,14 @@ export function cli() {
 }
 
 function assign(name: string, val: any) {
-  const state = process.env.MOSS_STATE ? JSON.parse(process.env.MOSS_STATE) : {
-    '$<': {},
-    'select<': {}
-  };
-  state['$<'][name] = val;
-  const command = `MOSS_STATE=${JSON.stringify(state)}`;
+  mossState['$<'][name] = val;
+  const command = `MOSS_STATE=${JSON.stringify(mossState)}`;
   console.log(command);
 }
 
 function select(name: string, val: any) {
-  const state = process.env.MOSS_STATE ? JSON.parse(process.env.MOSS_STATE) : {
-    '$<': {},
-    'select<': {}
-  };
-  state['select<'][name] = val;
-  const command = `MOSS_STATE=${JSON.stringify(state)}`;
+  mossState['select<'][name] = val;
+  const command = `MOSS_STATE=${JSON.stringify(mossState)}`;
   console.log(command);
 }
 
@@ -123,7 +120,7 @@ export function run(args: any) {
 
   const { MOSS_STATE, ...env } = process.env;
 
-  const environment = merge(JSON.parse(MOSS_STATE), {
+  const environment = merge(mossState, {
     'select<': {
       mac: platform == 'darwin',
       linux: platform == 'linux',
