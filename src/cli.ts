@@ -11,6 +11,8 @@ import { exec } from 'shelljs';
 const chalk = require('chalk')
 const chromafi = require('chromafi')
 
+import { createForm, createDts } from './dts';
+
 const chromafiOptions = {
   lang: 'yaml',
   colors: {
@@ -18,17 +20,15 @@ const chromafiOptions = {
     bullet: chalk.green,
     string: chalk.white,
     number: chalk.white,
-    // base: chalk.bgWhite.black.bold,
-    keyword: chalk.red,
+    base: chalk.white,
+    keyword: chalk.green,
     function: chalk.white,
-    title: chalk.blue,
+    // title: chalk.red,
     params: chalk.white,
-    built_in: chalk.blue,
-    literal: chalk.blue,
-    // Just pass `chalk` to ignore colors
-    trailing_space: chalk,
-    regexp: chalk.blue,
-    // line_numbers: chalk.bgBlue.white
+    built_in: chalk.green,
+    literal: chalk.green,
+    class: chalk.green,
+    // regexp: chalk.red,
   }
 };
 
@@ -52,9 +52,15 @@ const platform = os.platform();
 const environmentArgs = <any>{};
 const optionArgs = <any>{};
 
+const cliArgs = minimist(process.argv.slice(2), { boolean: true });
+
 addFunctions({
-  write: (current: Moss.Layer, args: any) => {
-    const { data, state } = next(current, args);
+  cli: (current: Moss.Layer, localArgs: any) => {
+    const { data, state } = next(current, localArgs);
+    extend(cliArgs, data);
+  },
+  write: (current: Moss.Layer, localArgs: any) => {
+    const { data, state } = next(current, localArgs);
     const options = combine(state.auto, state.stack);
     const { path, format } = options;
     switch (format) {
@@ -73,12 +79,11 @@ const mossState = process.env.MOSS_STATE ? JSON.parse(process.env.MOSS_STATE) : 
 };
 
 export function cli() {
-  const args = minimist(process.argv.slice(2));
-  const commands = args._;
+  const commands = cliArgs._;
   if (commands.length == 1) {
     switch (commands[0]) {
       case 'state': return console.log(chromafi(yaml.dump(mossState), chromafiOptions));
-      default: run(args);
+      default: run(cliArgs);
     }
 
   }
@@ -150,11 +155,37 @@ export function run(args: any) {
   }
 
   const res = parse(config, environment);
-  if (Object.keys(res).length) {
-    if (args.outFormat == 'json') {
-      console.log(chromafi(JSON.stringify(res, null, 2), { ...chromafiOptions, lang: 'json' }));
+  const fileName = configPath.split('.')[0];
+
+  if (args.form) {
+    // const json = JSON.stringify(res, null, 2);
+    const form = createForm({ tree: res, namespace: fileName });
+    if (args.o) {
+      writeFileSync(`${fileName}.ts`, form);
     } else {
-      console.info(chromafi(yaml.dump(res), chromafiOptions));
+      console.log(chromafi(form, { ...chromafiOptions, lang: 'typescript' }));
     }
+  }
+
+  if (args.dts) {
+    const dts = createDts({ tree: res, namespace: fileName });
+    if (args.o) {
+      writeFileSync(`${fileName}.d.ts`, dts);
+    } else {
+      console.log(chromafi(dts, { ...chromafiOptions, lang: 'typescript' }));
+    }
+  }
+
+  if (args.json){
+    const json = JSON.stringify(res, null, 2);
+    if (args.o){
+      writeFileSync(`${fileName}.json`, json);
+    } else {
+      console.log(chromafi(json, { ...chromafiOptions, lang: 'json' }));
+    }
+  }
+
+  if (!(args.json || args.dts || args.ts || args.form)){
+    console.log(chromafi(yaml.dump(res), chromafiOptions));
   }
 }
