@@ -1,0 +1,25 @@
+each<:
+  of:
+    production-yaml:
+      path: production.yaml
+      select<>:
+        production: true
+    debug-yaml:
+      path: debug.yaml
+      select<>:
+        debug: true
+    debug-json:
+      path: debug.json
+      format: json
+      select<>:
+        debug: true
+    debug-env:
+      path: .env.debug
+      format: env
+      select<>:
+        debug: true
+  do:
+    write<>:
+      libraryTarget:
+        =production: es5
+        =debug: es6
