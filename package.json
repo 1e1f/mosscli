@@ -1,7 +1,7 @@
 {
   "name": "mosscli",
   "description": "moss is a set of parsing rules for yaml and json",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "https://github.com/1e1f/js-moss",
   "author": {
     "name": "Leif Shackelford",
@@ -50,7 +50,7 @@
     "chromafi": "^2.1.0",
     "dts-dom": "^3.1.0",
     "glob-all": "^3.1.0",
-    "js-moss": "0.10.3",
+    "js-moss": "0.10.6",
     "minimist": "^1.2.0",
     "shelljs": "^0.8.1",
     "typed-json-transform": "^0.20.2",

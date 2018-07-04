@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 
 import { check, each, extend, clone, combine, merge } from 'typed-json-transform';
 import { readFileSync, writeFileSync, createWriteStream } from 'fs';
-import { parse, next, addFunctions, getFunctions } from 'js-moss';
+import { parse, next, start, addFunctions, getFunctions } from 'js-moss';
 
 import { glob as _glob } from './glob';
 
@@ -49,7 +49,7 @@ export function usage(cmd: string) {
 export function manual() {
   let man = `
   ${colors.gray('usage:')} ${name} ${colors.green('command')} ${colors.yellow('option')}
-  `
+  `;
   return man;
 }
 
@@ -205,19 +205,6 @@ export function moss(configPath: string) {
 
   const { MOSS_STATE, ...env } = process.env;
 
-  const environment = merge(mossState, {
-    'select<': {
-      mac: platform == 'darwin',
-      linux: platform == 'linux',
-      win: platform == 'win32',
-      ...mutable.options
-    },
-    '$<': {
-      ...env,
-      ...mutable.environment
-    }
-  });
-
   let configFile;
   try {
     configFile = readFileSync(base, 'utf8');
@@ -233,12 +220,22 @@ export function moss(configPath: string) {
     process.exit();
   }
 
-  const res = parse(config, environment);
+
+  const mossCliEnv = start({
+    'select<': {
+      mac: platform == 'darwin',
+      linux: platform == 'linux',
+      win: platform == 'win32',
+      ...mutable.options
+    }
+  });
+  mossCliEnv.state.stack = { ...env, ...mutable.environment };
+  const { data, state } = next(mossCliEnv, config);
   const fileName = base.split('.')[0];
 
   if (mutable.args.form) {
     // const json = JSON.stringify(res, null, 2);
-    const form = createForm({ tree: res, namespace: fileName });
+    const form = createForm({ tree: data, namespace: fileName });
     if (mutable.args.o) {
       writeFileSync(`${fileName} Form.moss.ts`, form);
     } else {
@@ -247,7 +244,7 @@ export function moss(configPath: string) {
   }
 
   if (mutable.args.dts) {
-    const dts = createDts({ tree: res, namespace: fileName });
+    const dts = createDts({ tree: data, namespace: fileName });
     if (mutable.args.o) {
       writeFileSync(`${fileName}.d.ts`, dts);
     } else {
@@ -256,7 +253,7 @@ export function moss(configPath: string) {
   }
 
   if (mutable.args.json) {
-    const json = JSON.stringify(res, null, 2);
+    const json = JSON.stringify(data, null, 2);
     if (mutable.args.o) {
       writeFileSync(`${fileName}.json`, json);
     } else {
@@ -265,7 +262,7 @@ export function moss(configPath: string) {
   }
 
   if (mutable.args.env) {
-    const env = jsonToEnv(res);
+    const env = jsonToEnv(data);
     if (mutable.args.o) {
       writeFileSync(`${fileName}.json`, env);
     } else {
@@ -275,7 +272,7 @@ export function moss(configPath: string) {
 
   const keys = Object.keys(mutable.args);
   if (mutable.args.log || !keys.length) {
-    console.log(chromafi(yaml.dump(res), chromafiOptions));
+    console.log(chromafi(yaml.dump(data), chromafiOptions));
   }
 }
 
