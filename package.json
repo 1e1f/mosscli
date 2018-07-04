@@ -22,7 +22,7 @@
   ],
   "bin": "bin/mosscli.js",
   "preferGlobal": true,
-  "types": "interfaces/index.d.ts",
+  "types": "index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "NODE_ENV=test mocha --recursive --compilers ts:ts-node/register --bail",
@@ -40,8 +40,6 @@
     "@types/watch": "^1.0.0",
     "chai": "^4.1.2",
     "coveralls": "^2.11.9",
-    "gulp": "^3.9.1",
-    "gulp-typescript": "^3.1.1",
     "mocha": "^3.2.0",
     "nyc": "^13.0.0",
     "ts-node": "^7.0.0",
