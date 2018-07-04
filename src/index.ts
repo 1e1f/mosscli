@@ -8,7 +8,7 @@ import * as minimist from 'minimist';
 import * as fs from 'fs';
 import { EventEmitter } from 'events';
 
-import { check, each, extend, clone, combine, merge } from 'typed-json-transform';
+import { check, each, extend, clone, combine, merge, isNumeric } from 'typed-json-transform';
 import { readFileSync, writeFileSync, createWriteStream } from 'fs';
 import { parse, next, start, addFunctions, getFunctions } from 'js-moss';
 
@@ -18,6 +18,7 @@ const chalk = require('chalk');
 const chromafi = require('chromafi');
 
 import { createForm, createDts } from './dts';
+import { isNumber } from 'util';
 
 const chromafiOptions = {
   lang: 'yaml',
@@ -81,14 +82,24 @@ const camelToSnakeCase = (input: string) => {
 }
 
 const jsonToEnv = (input: any, memo: string = '', parentPath: string = '') => {
-  each(input, (val, key: string) => {
-    const envPath = parentPath + camelToSnakeCase(key).toUpperCase();
-    if (check(val, String)) {
-      memo += `${envPath}=${val}\n`;
-    } else if (check(val, Object)) {
-      jsonToEnv(val, memo, envPath);
+  for (const key of Object.keys(input)) {
+    const val = input[key];
+    const snakey = camelToSnakeCase(key).toUpperCase();
+    const envPath = parentPath ? parentPath + '_' + snakey : snakey;
+    if (check(val, Object)) {
+      memo = jsonToEnv(val, memo, envPath);
+    } else {
+      if (typeof val == 'string') {
+        if (isNumeric(val)) {
+          memo += `${envPath}="${val}"\n`;
+        } else {
+          memo += `${envPath}=${val}\n`;
+        }
+      } else {
+        memo += `${envPath}=${val}\n`;
+      }
     }
-  });
+  };
   return memo;
 }
 
@@ -100,16 +111,26 @@ addFunctions({
   write: (current: Moss.Layer, localArgs: any) => {
     const { data, state } = next(current, localArgs);
     const options = combine(state.auto, state.stack);
-    const { path, format } = options;
+    const { path, format, replacer, spaces } = options;
+    let str: string;
+    let lang: string;
     switch (format) {
       case 'json':
-        writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
+        str = JSON.stringify(data, replacer, spaces || 2);
+        lang = 'json'
         break;
       case 'env':
-        writeFileSync(path, jsonToEnv(data), 'utf8');
+        str = jsonToEnv(data);
+        lang = 'pf'
         break;
-      default: writeFileSync(path, yaml.dump(data), 'utf8');
+      default:
+        str = yaml.dump(data);
+        lang = 'yaml'
+        break;
     }
+    writeFileSync(path, str, 'utf8');
+    if (cliArgs.v || cliArgs.verbose) console.log(chromafi(str, { ...chromafiOptions, lang }));
+    else console.log(str);
     return data;
   },
   stringify: (current: Moss.Layer, localArgs: any) => {
@@ -143,7 +164,7 @@ function parseCommands(commands: string[] = cliCommands) {
     switch (commands[0]) {
       case 'state': return console.log(chromafi(yaml.dump(mossState), chromafiOptions));
       case 'glob': return glob();
-      default: run(commands[0]);
+      default: return run(commands[0]);
     }
   }
   if (commands.length == 2) {
@@ -189,7 +210,7 @@ export function moss(configPath: string) {
   const { dir, base } = path.parse(configPath);
   const configDir = path.join(runDir, dir);
   process.chdir(configDir);
-  console.log('parsing', base, '@', runDir);
+  // console.log('parsing', base, '@', runDir);
   mutable.args = clone(cliArgs)
   mutable.environment = <any>{};
   mutable.options = <any>{};
@@ -216,7 +237,7 @@ export function moss(configPath: string) {
   try {
     config = yaml.load(configFile);
   } catch (e) {
-    console.error('problem parsing config file', e.message);
+    // console.error('problem parsing config file', e.message);
     process.exit();
   }
 
@@ -248,7 +269,11 @@ export function moss(configPath: string) {
     if (mutable.args.o) {
       writeFileSync(`${fileName}.d.ts`, dts);
     } else {
-      console.log(chromafi(dts, { ...chromafiOptions, lang: 'typescript' }));
+      if (mutable.args.verbose || mutable.args.v) {
+        console.log(chromafi(dts, { ...chromafiOptions, lang: 'typescript' }));
+      } else {
+        console.log(dts);
+      }
     }
   }
 
@@ -257,22 +282,25 @@ export function moss(configPath: string) {
     if (mutable.args.o) {
       writeFileSync(`${fileName}.json`, json);
     } else {
-      console.log(chromafi(json, { ...chromafiOptions, lang: 'json' }));
+      if (mutable.args.verbose || mutable.args.v) {
+        console.log(chromafi(json, { ...chromafiOptions, lang: 'json' }));
+      } else {
+        console.log(json);
+      }
     }
   }
 
   if (mutable.args.env) {
     const env = jsonToEnv(data);
     if (mutable.args.o) {
-      writeFileSync(`${fileName}.json`, env);
+      writeFileSync(mutable.args.path || `.env`, env);
     } else {
-      console.log(chromafi(env, { ...chromafiOptions, lang: 'json' }));
+      if (mutable.args.verbose || mutable.args.v) {
+        console.log(chromafi(env, { ...chromafiOptions, lang: 'env' }));
+      } else {
+        console.log(env);
+      }
     }
-  }
-
-  const keys = Object.keys(mutable.args);
-  if (mutable.args.log || !keys.length) {
-    console.log(chromafi(yaml.dump(data), chromafiOptions));
   }
 }
 
