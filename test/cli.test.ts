@@ -19,7 +19,7 @@ describe('moss', () => {
   });
   it('can write files using <write function', () => {
     process.chdir(__dirname);
-    
+
     Object.keys(expect).forEach(key => {
       try {
         unlinkSync(key);
@@ -27,7 +27,7 @@ describe('moss', () => {
       catch (e) { }
     });
 
-    moss('test.moss');
+    moss({ filePath: 'test.moss' });
 
     Object.keys(expect).forEach(key => {
       let file;
