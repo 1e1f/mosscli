@@ -40,15 +40,13 @@ const chromafiOptions = {
 
 const name = 'moss';
 
-const c = { g: colors.green, y: colors.yellow };
-
 export function usage(cmd: string) {
-  return `${colors.gray('usage:')} ${name}`;
+  return `${chalk.gray('usage:')} ${name}`;
 }
 
 export function manual() {
   let man = `
-  ${colors.gray('usage:')} ${name} ${colors.green('command')} ${colors.yellow('option')}
+  ${chalk.gray('usage:')} ${name} ${chalk.green('command')} ${chalk.yellow('option')}
   `;
   return man;
 }
@@ -103,12 +101,12 @@ const jsonToEnv = (input: any, memo: string = '', parentPath: string = '') => {
 }
 
 addFunctions({
-  cli: (current: Moss.Layer, localArgs: any) => {
-    const { data, state } = next(current, localArgs);
+  cli: async (current: Moss.Layer, localArgs: any) => {
+    const { data, state } = await next(current, localArgs);
     extend(mutable.args, data);
   },
-  write: (current: Moss.Layer, localArgs: any) => {
-    const { data, state } = next(current, localArgs);
+  write: async (current: Moss.Layer, localArgs: any) => {
+    const { data, state } = await next(current, localArgs);
     const options = combine(state.auto, state.stack);
     const { path, format, replacer, spaces } = options;
     let str: string;
@@ -127,13 +125,13 @@ addFunctions({
         lang = 'yaml'
         break;
     }
-    writeFileSync(path, str, 'utf8');
+    writeFileSync(path, str, { encoding: 'utf8' });
     if (cliArgs.v || cliArgs.verbose) console.log(chromafi(str, { ...chromafiOptions, lang }));
     else console.log(str);
     return data;
   },
-  stringify: (current: Moss.Layer, localArgs: any) => {
-    const { data, state } = next(current, localArgs);
+  stringify: async (current: Moss.Layer, localArgs: any) => {
+    const { data, state } = await next(current, localArgs);
     const options = combine(state.auto, state.stack);
     const { format } = options;
     switch (format) {
@@ -185,11 +183,11 @@ function parseCommands(commands: string[] = cliCommands) {
   }
 }
 
-function glob(patterns: any = '**/*.moss.yaml') {
-  return _glob(patterns).then((files: string[]) => {
-    each(files, (filePath) => {
-      run(filePath);
-    });
+async function glob(patterns: any = '**/*.moss.yaml') {
+  return _glob(patterns).then(async (files: string[]) => {
+    for (const filePath in files) {
+      await run(filePath);
+    }
   });
 }
 
@@ -212,7 +210,7 @@ interface MossConfig {
 
 export const moss = (conf: MossConfig) => getMossConfig(conf);
 
-export function getMossConfig({ filePath, stream }: MossConfig) {
+export async function getMossConfig({ filePath, stream }: MossConfig) {
   const runDir = process.cwd();
   let config = '';
   let outFile: string;
@@ -233,20 +231,20 @@ export function getMossConfig({ filePath, stream }: MossConfig) {
       // console.error('problem parsing config file', e.message);
       process.exit();
     }
-    applyMoss(config, outFile);
+    await applyMoss(config, outFile);
   } else if (stream) {
     outFile = 'moss';
     stream.resume();
     stream.on('data', (data: any) => config += data);
-    stream.on('end', () => {
-      process.stdout.write(applyMoss('\n' + config, outFile));
+    stream.on('end', async () => {
+      process.stdout.write(await applyMoss('\n' + config, outFile));
     });
   } else {
     console.error('no config file or std:in provided');
   }
 }
 
-function applyMoss(config: string, outFile: string) {
+async function applyMoss(config: string, outFile: string) {
   mutable.args = clone(cliArgs)
   mutable.environment = <any>{};
   mutable.options = <any>{};
@@ -262,7 +260,7 @@ function applyMoss(config: string, outFile: string) {
 
   const { MOSS_STATE, ...env } = process.env;
 
-  const mossCliEnv = start({
+  const mossCliEnv = await start({
     'select<': {
       mac: platform == 'darwin',
       linux: platform == 'linux',
@@ -271,13 +269,13 @@ function applyMoss(config: string, outFile: string) {
     }
   });
   mossCliEnv.state.stack = { ...env, ...mutable.environment };
-  const { data, state } = next(mossCliEnv, config);
+  const { data, state } = await next(mossCliEnv, config);
 
   if (mutable.args.form) {
     // const json = JSON.stringify(res, null, 2);
     const form = createForm({ tree: data, namespace: outFile });
     if (mutable.args.o) {
-      writeFileSync(`${outFile} Form.moss.ts`, form);
+      writeFileSync(`${outFile} Form.moss.ts`, form, { encoding: 'utf8' });
     }
     if (mutable.args.verbose || mutable.args.v) {
       console.log(chromafi(form, { ...chromafiOptions, lang: 'typescript' }));
@@ -288,7 +286,7 @@ function applyMoss(config: string, outFile: string) {
   if (mutable.args.dts) {
     const dts = createDts({ tree: data, namespace: outFile });
     if (mutable.args.o) {
-      writeFileSync(`${outFile}.d.ts`, dts);
+      writeFileSync(`${outFile}.d.ts`, dts, { encoding: 'utf8' });
     } if (mutable.args.verbose || mutable.args.v) {
       console.log(chromafi(dts, { ...chromafiOptions, lang: 'typescript' }));
     }
@@ -298,7 +296,7 @@ function applyMoss(config: string, outFile: string) {
   if (mutable.args.json) {
     const json = JSON.stringify(data, null, 2);
     if (mutable.args.o) {
-      writeFileSync(`${outFile}.json`, json);
+      writeFileSync(`${outFile}.json`, json, { encoding: 'utf8' });
     } if (mutable.args.verbose || mutable.args.v) {
       console.log(chromafi(json, { ...chromafiOptions, lang: 'json' }));
     }
@@ -308,7 +306,7 @@ function applyMoss(config: string, outFile: string) {
   if (mutable.args.env) {
     const env = jsonToEnv(data);
     if (mutable.args.o) {
-      writeFileSync(mutable.args.path || `.env`, env);
+      writeFileSync(mutable.args.path || `.env`, env, { encoding: 'utf8' });
     } if (mutable.args.verbose || mutable.args.v) {
       console.log(chromafi(env, { ...chromafiOptions, lang: 'env' }));
     }
@@ -388,13 +386,13 @@ function monitor(filePath: string) {
 
 let emitters: any = {};
 
-function run(filePath: string) {
+async function run(filePath: string) {
   if (cliArgs.watch) {
     emitters[filePath] = monitor(filePath);
-    emitters[filePath].on('changed', () => {
-      getMossConfig({ filePath });
+    emitters[filePath].on('changed', async () => {
+      await getMossConfig({ filePath });
     });
   } else {
-    getMossConfig({ filePath, stream: process.stdin });
+    return await getMossConfig({ filePath, stream: process.stdin });
   }
 }

@@ -1,5 +1,6 @@
 import { readFileSync, unlinkSync } from 'fs';
 import { assert } from 'chai';
+import { describe, it } from 'mocha';
 
 import { getFunctions } from 'js-moss';
 import { moss } from '../src';
@@ -27,18 +28,18 @@ describe('moss', () => {
       catch (e) { }
     });
 
-    moss({ filePath: 'test.moss' });
+    return moss({ filePath: 'test.moss' }).then(() => {
+      Object.keys(expect).forEach(key => {
+        let file;
+        try {
+          file = readFileSync(key, 'utf8');
+        }
+        catch (e) {
 
-    Object.keys(expect).forEach(key => {
-      let file;
-      try {
-        file = readFileSync(key, 'utf8');
-      }
-      catch (e) {
-
-      }
-      assert.equal(file, expect[key]);
-      unlinkSync(key);
-    });
+        }
+        assert.equal(file, expect[key]);
+        unlinkSync(key);
+      });
+    })
   });
 });

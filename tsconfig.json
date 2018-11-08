@@ -3,10 +3,6 @@
     "src/**/*.ts",
     "src/@types/*.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ],
   "compilerOptions": {
     "outDir": "lib",
     "sourceMap": true,
