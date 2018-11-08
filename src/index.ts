@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 
 import { check, each, extend, clone, combine, merge, isNumeric } from 'typed-json-transform';
 import { readFileSync, writeFileSync } from 'fs';
-import { next, start, addFunctions } from 'js-moss';
+import { next, start, addFunctions, addResolvers } from 'js-moss';
 
 import { glob as _glob } from './glob';
 
@@ -99,6 +99,25 @@ const jsonToEnv = (input: any, memo: string = '', parentPath: string = '') => {
   };
   return memo;
 }
+
+addResolvers({
+  file: async (args: any) => {
+    if (check(args, String)) {
+      args = { path: args }
+    }
+    const string = fs.readFileSync(args.path, 'utf8');
+    let res;
+    switch (args.format) {
+      case 'json':
+        res = JSON.parse(string);
+        break;
+      default:
+        res = yaml.load(string);
+        break;
+    }
+    return Promise.resolve(res);
+  }
+});
 
 addFunctions({
   cli: async (current: Moss.Layer, localArgs: any) => {
@@ -231,7 +250,7 @@ export async function getMossConfig({ filePath, stream }: MossConfig) {
       // console.error('problem parsing config file', e.message);
       process.exit();
     }
-    await applyMoss(config, outFile);
+    return await applyMoss(config, outFile);
   } else if (stream) {
     outFile = 'moss';
     stream.resume();

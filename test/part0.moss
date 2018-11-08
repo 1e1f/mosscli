@@ -1,0 +1,4 @@
+hopefully:
+  you:
+    can:
+      import<: file://part1.moss
