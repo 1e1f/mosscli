@@ -263,14 +263,16 @@ async function applyMoss(config: string, outFile?: string) {
 
   const mossCliEnv = await start({
     'select<': {
-      mac: platform == 'darwin',
-      linux: platform == 'linux',
-      win: platform == 'win32',
+      'host-mac': platform == 'darwin',
+      'host-linux': platform == 'linux',
+      'host-win': platform == 'win32',
+      [(process.env.NAMESPACE || process.env.namespace)]: true,
       ...mutable.options
     }
   });
-  mossCliEnv.state.stack = { ...env, ...mutable.environment };
-  const { data, state } = await next(mossCliEnv, config);
+  mossCliEnv.state.auto = { ...env, ...mutable.environment };
+  if (!mossCliEnv.state.auto.namespace) mossCliEnv.state.auto.namespace = process.env.NAMESPACE;
+  const { data } = await next(mossCliEnv, config);
 
   if (mutable.args.form) {
     // const json = JSON.stringify(res, null, 2);

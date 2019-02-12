@@ -5,14 +5,14 @@ import * as yaml from 'js-yaml';
 import { Async } from 'js-moss';
 import { createGraphqlResolver } from '../src/resolvers/graphql';
 
-Async.addResolvers({
-  localhost: createGraphqlResolver({
-    url: 'http://localhost:3000/graphql',
-    headers: {
-      token: 'x'
-    }
-  }),
-});
+// Async.addResolvers({
+//   localhost: createGraphqlResolver({
+//     url: 'http://localhost:3000/graphql',
+//     headers: {
+//       token: 'x'
+//     }
+//   }),
+// });
 
 describe('import', () => {
   it('can resolve local files', async () => {
