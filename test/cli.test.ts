@@ -31,7 +31,7 @@ describe('moss', () => {
       catch (e) { }
     });
 
-    return moss({ filePath: 'test.moss' }).then(() => {
+    return moss({ filePath: 'test.moss', quiet: true }).then(() => {
       Object.keys(expect).forEach(key => {
         let file;
         try {

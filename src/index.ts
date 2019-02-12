@@ -8,36 +8,21 @@ import * as minimist from 'minimist';
 import * as fs from 'fs';
 import { EventEmitter } from 'events';
 
-import { check, each, extend, clone, combine, merge, isNumeric, startsWith, any } from 'typed-json-transform';
+import { check, each, extend, clone, combine, isNumeric } from 'typed-json-transform';
 import { readFileSync, writeFileSync } from 'fs';
 import { Async } from 'js-moss';
 const { next, start, addFunctions, addResolvers } = Async;
 
 import { glob as _glob } from './glob';
 
+import { createForm, createDts } from './dts';
+import { createGraphqlResolver } from './resolvers/graphql';
+import { createFileResolver } from './resolvers/file';
+
 const chalk = require('chalk');
 const chromafi = require('chromafi');
 
-import { createForm, createDts } from './dts';
-
-const chromafiOptions = {
-  lang: 'yaml',
-  colors: {
-    attr: chalk.green,
-    bullet: chalk.green,
-    string: chalk.white,
-    number: chalk.white,
-    base: chalk.white,
-    keyword: chalk.green,
-    function: chalk.white,
-    // title: chalk.red,
-    params: chalk.white,
-    built_in: chalk.green,
-    literal: chalk.green,
-    class: chalk.green,
-    // regexp: chalk.red,
-  }
-};
+import { chromafiOptions } from './util';
 
 const name = 'moss';
 
@@ -102,34 +87,13 @@ const jsonToEnv = (input: any, memo: string = '', parentPath: string = '') => {
 }
 
 addResolvers({
-  file: {
-    match: (uri) => any(['/', '.', '~'], prefix => startsWith(uri, prefix)),
-    resolve: async (uri: any) => {
-      const ext = path.extname(uri);
-      let fp = uri;
-      let format = ext;
-      if (!format) {
-        ['moss', 'yaml', 'json'].forEach(possibleExt => {
-          const possibleFilePath = `${uri}.${possibleExt}`;
-          if (fs.existsSync(possibleFilePath)) {
-            format = possibleExt;
-            fp = possibleFilePath;
-          }
-        })
-      }
-      const string = fs.readFileSync(fp, 'utf8');
-      let res;
-      switch (format) {
-        case 'json':
-          res = JSON.parse(string);
-          break;
-        default:
-          res = yaml.load(string);
-          break;
-      }
-      return Promise.resolve(res);
+  trieMake: createGraphqlResolver({
+    url: 'https://www.triemake.com/graphql',
+    headers: {
+      token: 'x'
     }
-  }
+  }),
+  file: createFileResolver()
 });
 
 addFunctions({
@@ -159,7 +123,6 @@ addFunctions({
     }
     writeFileSync(path, str, { encoding: 'utf8' });
     if (cliArgs.v || cliArgs.verbose) console.log(chromafi(str, { ...chromafiOptions, lang }));
-    else console.log(str);
     return data;
   },
   stringify: async (current: Moss.Layer, localArgs: any) => {
@@ -237,12 +200,13 @@ function select(name: string, val: any) {
 
 interface MossConfig {
   filePath?: string
-  stream?: NodeJS.ReadStream
+  stream?: NodeJS.ReadStream,
+  quiet?: boolean
 }
 
 export const moss = (conf: MossConfig) => getMossConfig(conf);
 
-export async function getMossConfig({ filePath, stream }: MossConfig) {
+export async function getMossConfig({ filePath, stream, quiet }: MossConfig) {
   const runDir = process.cwd();
   let config = '';
   let outFile: string;
@@ -264,6 +228,7 @@ export async function getMossConfig({ filePath, stream }: MossConfig) {
       process.exit();
     }
     const out = await applyMoss(config, outFile);
+    if (quiet) return out;
     if (cliArgs.c || cliArgs.color) console.log(chromafi(out, { ...chromafiOptions, lang: 'yaml' }));
     else process.stdout.write(out);
     return out;

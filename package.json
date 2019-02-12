@@ -1,7 +1,7 @@
 {
   "name": "mosscli",
   "description": "moss is a set of parsing rules for yaml and json",
-  "version": "0.15.0",
+  "version": "0.15.2",
   "homepage": "https://github.com/1e1f/js-moss",
   "author": {
     "name": "Leif Shackelford",
@@ -31,29 +31,33 @@
   },
   "Keywords": [],
   "devDependencies": {
+    "@types/chai": "^4.1",
     "@types/js-yaml": "^3.12",
     "@types/mathjs": "^5",
+    "@types/minimist": "^1.2",
     "@types/mocha": "^5",
     "@types/node": "^10",
     "@types/shelljs": "^0.8",
-    "@types/chai": "^4.1",
+    "@types/watch": "^1.0",
+    "@types/graphql": "^14.0.5",
+    "@types/node-fetch": "^2.1.6",
     "chai": "^4.2",
     "coveralls": "^3.0",
     "mocha": "^5.2",
     "nyc": "^13.2",
     "shelljs": "^0.8",
     "ts-node": "^8.0",
-    "typescript": "3.2.2",
-    "@types/minimist": "^1.2",
-    "@types/watch": "^1.0"
+    "typescript": "3.2.2"
   },
   "dependencies": {
     "chalk": "^2.4",
     "chromafi": "^2.1",
     "dts-dom": "^3.1",
     "glob-all": "^3.1",
-    "js-moss": "^0.15",
+    "graphql": "^14.1",
+    "js-moss": "^0.15.2",
     "minimist": "^1.2",
+    "node-fetch": "^2.3",
     "shelljs": "^0.8",
     "typed-json-transform": "^0.22",
     "watch": "^1.0"
