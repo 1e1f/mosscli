@@ -1,7 +1,7 @@
 {
   "name": "mosscli",
   "description": "moss is a set of parsing rules for yaml and json",
-  "version": "0.6.3",
+  "version": "0.15.0",
   "homepage": "https://github.com/1e1f/js-moss",
   "author": {
     "name": "Leif Shackelford",
@@ -31,29 +31,31 @@
   },
   "Keywords": [],
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/chalk": "^2.2.0",
-    "@types/js-yaml": "^3.11.2",
-    "@types/minimist": "^1.2.0",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^8.0.0",
-    "@types/watch": "^1.0.0",
-    "chai": "^4.2.0",
-    "coveralls": "^3.0.2",
-    "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.1.6"
+    "@types/js-yaml": "^3.12",
+    "@types/mathjs": "^5",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "@types/shelljs": "^0.8",
+    "@types/chai": "^4.1",
+    "chai": "^4.2",
+    "coveralls": "^3.0",
+    "mocha": "^5.2",
+    "nyc": "^13.2",
+    "shelljs": "^0.8",
+    "ts-node": "^8.0",
+    "typescript": "3.2.2",
+    "@types/minimist": "^1.2",
+    "@types/watch": "^1.0"
   },
   "dependencies": {
-    "chalk": "^2.4.1",
-    "chromafi": "^2.1.0",
-    "dts-dom": "^3.1.0",
-    "glob-all": "^3.1.0",
-    "js-moss": "0.12.5",
-    "minimist": "^1.2.0",
-    "shelljs": "^0.8.2",
-    "typed-json-transform": "^0.22.1",
-    "watch": "^1.0.2"
+    "chalk": "^2.4",
+    "chromafi": "^2.1",
+    "dts-dom": "^3.1",
+    "glob-all": "^3.1",
+    "js-moss": "^0.15",
+    "minimist": "^1.2",
+    "shelljs": "^0.8",
+    "typed-json-transform": "^0.22",
+    "watch": "^1.0"
   }
 }

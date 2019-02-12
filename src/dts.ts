@@ -97,7 +97,7 @@ function convertToText(obj: any, indent: number = indentWidth): string {
     }
 }
 
-export const createForm = ({ tree, namespace }: Options) => {
+export const createForm = ({ tree }: Options) => {
     // const ns = dom.create.namespace(namespace[0].toUpperCase() + namespace.slice(1));
     // ns.flags = dom.DeclarationFlags.Export;
 

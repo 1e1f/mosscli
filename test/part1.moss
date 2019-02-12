@@ -1,4 +1,3 @@
 keep: 
   your:
-    yaml:
-      import<: file://part2.moss
+    yaml: ^./part2.moss

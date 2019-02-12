@@ -1,4 +1,3 @@
 hopefully:
   you:
-    can:
-      import<: file://part1.moss
+    can: ^./part1.moss

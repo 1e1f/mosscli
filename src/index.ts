@@ -8,9 +8,10 @@ import * as minimist from 'minimist';
 import * as fs from 'fs';
 import { EventEmitter } from 'events';
 
-import { check, each, extend, clone, combine, merge, isNumeric } from 'typed-json-transform';
+import { check, each, extend, clone, combine, merge, isNumeric, startsWith, any } from 'typed-json-transform';
 import { readFileSync, writeFileSync } from 'fs';
-import { next, start, addFunctions, addResolvers } from 'js-moss';
+import { Async } from 'js-moss';
+const { next, start, addFunctions, addResolvers } = Async;
 
 import { glob as _glob } from './glob';
 
@@ -52,7 +53,7 @@ export function manual() {
 }
 
 const platform = os.platform();
-const { _, ...cliArgs } = minimist(process.argv.slice(2), { boolean: true });
+const { _, ...cliArgs } = minimist(process.argv.slice(2), { boolean: ['c', 'v', 'verbose', 'w', 'watch'] });
 const cliCommands = _;
 
 interface Mutable {
@@ -101,21 +102,33 @@ const jsonToEnv = (input: any, memo: string = '', parentPath: string = '') => {
 }
 
 addResolvers({
-  file: async (args: any) => {
-    if (check(args, String)) {
-      args = { path: args }
+  file: {
+    match: (uri) => any(['/', '.', '~'], prefix => startsWith(uri, prefix)),
+    resolve: async (uri: any) => {
+      const ext = path.extname(uri);
+      let fp = uri;
+      let format = ext;
+      if (!format) {
+        ['moss', 'yaml', 'json'].forEach(possibleExt => {
+          const possibleFilePath = `${uri}.${possibleExt}`;
+          if (fs.existsSync(possibleFilePath)) {
+            format = possibleExt;
+            fp = possibleFilePath;
+          }
+        })
+      }
+      const string = fs.readFileSync(fp, 'utf8');
+      let res;
+      switch (format) {
+        case 'json':
+          res = JSON.parse(string);
+          break;
+        default:
+          res = yaml.load(string);
+          break;
+      }
+      return Promise.resolve(res);
     }
-    const string = fs.readFileSync(args.path, 'utf8');
-    let res;
-    switch (args.format) {
-      case 'json':
-        res = JSON.parse(string);
-        break;
-      default:
-        res = yaml.load(string);
-        break;
-    }
-    return Promise.resolve(res);
   }
 });
 
@@ -247,23 +260,27 @@ export async function getMossConfig({ filePath, stream }: MossConfig) {
     try {
       config = yaml.load(config);
     } catch (e) {
-      // console.error('problem parsing config file', e.message);
+      console.error('problem parsing config file', e.message);
       process.exit();
     }
-    return await applyMoss(config, outFile);
+    const out = await applyMoss(config, outFile);
+    if (cliArgs.c || cliArgs.color) console.log(chromafi(out, { ...chromafiOptions, lang: 'yaml' }));
+    else process.stdout.write(out);
+    return out;
   } else if (stream) {
-    outFile = 'moss';
+    // outFile = 'moss';
     stream.resume();
     stream.on('data', (data: any) => config += data);
     stream.on('end', async () => {
-      process.stdout.write(await applyMoss('\n' + config, outFile));
+      const res = await applyMoss(config);
+      process.stdout.write(res);
     });
   } else {
     console.error('no config file or std:in provided');
   }
 }
 
-async function applyMoss(config: string, outFile: string) {
+async function applyMoss(config: string, outFile?: string) {
   mutable.args = clone(cliArgs)
   mutable.environment = <any>{};
   mutable.options = <any>{};

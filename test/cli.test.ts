@@ -2,7 +2,10 @@ import { readFileSync, unlinkSync } from 'fs';
 import { assert } from 'chai';
 import { describe, it } from 'mocha';
 
-import { getFunctions } from 'js-moss';
+import { Async } from 'js-moss';
+
+const { getFunctions } = Async;
+
 import { moss } from '../src';
 
 const expect: any = {
