@@ -17,7 +17,7 @@ import { glob as _glob } from './glob';
 
 import { createForm, createDts } from './dts';
 import { createGraphqlResolver } from './resolvers/graphql';
-import { createFileResolver } from './resolvers/file';
+import { resolveFileAsync } from './resolvers/file';
 
 const chalk = require('chalk');
 const chromafi = require('chromafi');
@@ -93,7 +93,7 @@ addResolvers({
       token: 'x'
     }
   }),
-  file: createFileResolver()
+  file: resolveFileAsync
 });
 
 addFunctions({
@@ -227,11 +227,16 @@ export async function getMossConfig({ filePath, stream, quiet }: MossConfig) {
       console.error('problem parsing config file', e.message);
       process.exit();
     }
-    const out = await applyMoss(config, outFile);
-    if (quiet) return out;
-    if (cliArgs.c || cliArgs.color) console.log(chromafi(out, { ...chromafiOptions, lang: 'yaml' }));
-    else process.stdout.write(out);
-    return out;
+    try {
+      const out = await applyMoss(config, outFile);
+      if (quiet) return out;
+      if (cliArgs.c || cliArgs.color) console.log(chromafi(out, { ...chromafiOptions, lang: 'yaml' }));
+      else process.stdout.write(out);
+      return out;
+    } catch (e) {
+      process.stderr.write(yaml.dump(e));
+      process.exit(1)
+    }
   } else if (stream) {
     // outFile = 'moss';
     stream.resume();

@@ -9,12 +9,10 @@ interface Endpoint {
     }
 };
 
-import { createFileResolver } from './file';
-
-const fileResolver = createFileResolver();
+import { resolveFileAsync } from './file';
 
 export const createGraphqlResolver = (endpoint: Endpoint) => ({
-    match: (uri: string) => !fileResolver.match(uri) && uri.indexOf('/') != -1,
+    match: (uri: string) => !resolveFileAsync.match(uri) && uri.indexOf('/') != -1,
     resolve: async (uri: string) => {
         const query = `{
             fromUri(uri: "${uri}") {
@@ -41,9 +39,9 @@ export const createGraphqlResolver = (endpoint: Endpoint) => ({
             if (res.data) {
                 const branch: any = res.data.fromUri;
                 if (branch) {
-                    const { text } = branch;
-                    if (text) {
-                        return load(text);
+                    return {
+                        ...branch,
+                        data: load(branch.text)
                     }
                 }
             }

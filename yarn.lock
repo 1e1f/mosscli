@@ -1078,10 +1078,10 @@ javascript-natural-sort@0.7.1:
   resolved "https://registry.yarnpkg.com/javascript-natural-sort/-/javascript-natural-sort-0.7.1.tgz#f9e2303d4507f6d74355a73664d1440fb5a0ef59"
   integrity sha1-+eIwPUUH9tdDVac2ZNFED7Wg71k=
 
-js-moss@^0.15:
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.15.1.tgz#8253158be829f470d4ffefbf8ae5e11ff8cba220"
-  integrity sha512-y0SgKi3akfvpVxUck21UoM6yENKNhcs2CbNKszUSd766I4UGgxU5q4z1OythqTO6SXZ+k5Y6Sx+cDpw3Oq/KMg==
+js-moss@^0.16:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/js-moss/-/js-moss-0.16.0.tgz#3a70e178e5aaabb6c26871ed9252d2a5c610deab"
+  integrity sha512-1io/x8qzjlhwC5Bbrt+LjmrAyzfb+2SDdZunIyYux/xfnbDNw2L2QbWm7n/3XVD7z1/ooiCPyE1vTdTSJKCVkg==
   dependencies:
     js-yaml "^3.12"
     mathjs "^5.4"

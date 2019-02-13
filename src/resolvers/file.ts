@@ -3,9 +3,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { startsWith, any } from 'typed-json-transform';
 
-export const createFileResolver = () => ({
+export const resolveFileAsync = {
     match: (uri: string) => any(['/', '.', '~'], prefix => startsWith(uri, prefix)),
-    resolve: async (uri: any) => {
+    resolve: (uri: any) => {
         const ext = path.extname(uri);
         let fp = uri;
         let format = ext;
@@ -18,16 +18,24 @@ export const createFileResolver = () => ({
                 }
             })
         }
-        const string = fs.readFileSync(fp, 'utf8');
-        let res;
-        switch (format) {
-            case 'json':
-                res = JSON.parse(string);
-                break;
-            default:
-                res = yaml.load(string);
-                break;
-        }
-        return Promise.resolve(res);
+        return new Promise((res, rej) => {
+            fs.readFile(fp, { encoding: 'utf8' }, (err, buf) => {
+                if (err) rej(err);
+                let data;
+                switch (format) {
+                    case 'json':
+                        data = JSON.parse(buf);
+                        break;
+                    default:
+                        data = yaml.load(buf);
+                        break;
+                }
+                return res({
+                    path: uri,
+                    buf,
+                    data
+                });
+            });
+        });
     }
-})
+}
